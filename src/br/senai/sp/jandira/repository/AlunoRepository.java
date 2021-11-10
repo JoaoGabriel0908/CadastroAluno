@@ -6,6 +6,7 @@ public class AlunoRepository {
 	
 	private Aluno[] turma;
 	
+	//ESSE CONSTRUTOR DA CLASSE, CRIA UM VETOR COM 32 ALUNOS
 	public AlunoRepository() {
 		turma = new Aluno[32];
 	}
