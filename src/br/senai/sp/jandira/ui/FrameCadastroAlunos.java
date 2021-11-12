@@ -8,12 +8,15 @@ import java.awt.event.ActionListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 
@@ -34,7 +37,7 @@ public class FrameCadastroAlunos extends JFrame {
 	public FrameCadastroAlunos() {
 		setTitle("Cadastro de Alunos");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 500, 300);
+		setBounds(100, 100, 500, 280);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -45,7 +48,7 @@ public class FrameCadastroAlunos extends JFrame {
 		contentPane.add(lblMatricula);
 		
 		txtMatricula = new JTextField();
-		txtMatricula.setBounds(76, 29, 157, 20);
+		txtMatricula.setBounds(76, 29, 157, 31);
 		contentPane.add(txtMatricula);
 		txtMatricula.setColumns(10);
 		
@@ -55,7 +58,7 @@ public class FrameCadastroAlunos extends JFrame {
 		
 		txtNome = new JTextField();
 		txtNome.setColumns(10);
-		txtNome.setBounds(76, 72, 157, 20);
+		txtNome.setBounds(76, 72, 157, 31);
 		contentPane.add(txtNome);
 		
 		lblPeriodo = new JLabel("Per\u00EDodo");
@@ -75,11 +78,11 @@ public class FrameCadastroAlunos extends JFrame {
 		
 		//comboPeriodo.setModel(new DefaultComboBoxModel(Periodo.values()));
 		comboPeriodo.setModel(comboModelPeriodo);
-		comboPeriodo.setBounds(76, 110, 99, 22);
+		comboPeriodo.setBounds(76, 110, 157, 22);
 		contentPane.add(comboPeriodo);
 		
 		JButton btnSalvar = new JButton("Salvar Aluno");
-		btnSalvar.setBounds(28, 170, 205, 59);
+		btnSalvar.setBounds(28, 143, 205, 37);
 		contentPane.add(btnSalvar);
 		
 		JLabel lblNewLabel_1 = new JLabel("Lista de Alunos: ");
@@ -87,10 +90,11 @@ public class FrameCadastroAlunos extends JFrame {
 		contentPane.add(lblNewLabel_1);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(285, 63, 147, 166);
+		scrollPane.setBounds(285, 63, 147, 167);
 		contentPane.add(scrollPane);
 		
 		JList listAluno = new JList();
+		
 		scrollPane.setViewportView(listAluno);
 		
 		//CRIAR O MODEL PARA DEFINIR A LISTA DOS ALUNOS
@@ -98,6 +102,10 @@ public class FrameCadastroAlunos extends JFrame {
 		
 		//DEFINIR O MODELALUNO COMO SENDO UM MODEL DO NOSSO LIST
 		listAluno.setModel(modelAlunos);
+		
+		JButton btnExibir = new JButton("Exibir alunos");
+		btnExibir.setBounds(28, 191, 205, 37);
+		contentPane.add(btnExibir);
 		
 		//CRIAR UMA TURMA QUE É UM REPOSITÓRIO DE ALUNOS
 		AlunoRepository turma = new AlunoRepository(3);
@@ -113,21 +121,68 @@ public class FrameCadastroAlunos extends JFrame {
 				
 				aluno.setNome(txtNome.getText());
 				aluno.setMatricula(txtMatricula.getText());
+				//DEFINIR O HORÁRIO QUE O ALUNO ESTUDA
+				aluno.setPeriodo(definirPeriodo(comboPeriodo.getSelectedIndex()));
 				
-				turma.gravar(aluno, 0);
+				turma.gravar(aluno, posicao);
 				
 				posicao++;
 				
+				//ADICIONAR O NOME DO ALUNO AO MODEL DA LISTA
 				modelAlunos.addElement(aluno.getNome());
 				
+				if (posicao == turma.getTamanho()) {
+					btnSalvar.setEnabled(false);
+					JOptionPane.showMessageDialog(null, "A Turma ja esta cheia!", "OPSS!!!", JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
-		btnSalvar.addActionListener(new ActionListener() {
+		btnExibir.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-			
+				
+				for (Aluno aluno : turma.listarTodos()) {
+					System.out.println(aluno.getMatricula());
+					System.out.println(aluno.getNome());
+					System.out.println(aluno.getPeriodo().getDescricao());
+					System.out.println("-------------------");
+				}
 			}
 		});
+		listAluno.addListSelectionListener(new ListSelectionListener() {
+			
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				
+				Aluno aluno = turma.listarAluno(listAluno.getSelectedIndex());
+				txtMatricula.setText(aluno.getMatricula());
+				txtNome.setText(aluno.getNome());
+				
+				comboPeriodo.setSelectedIndex(aluno.getPeriodo().ordinal());
+				
+			}
+		});	
+	}
+	//MÉTODO QUE IRÁ DEFINIR O PERIODO DO ALUNO
+	//TODO MÉTODO TEM QUE TER UM VERBO PARA ELE FAZER UMA AÇÃO
+	private Periodo definirPeriodo(int periodoSelecionado) {
+		
+		if (periodoSelecionado == 0) {
+			return Periodo.MANHA;
+		}
+		else if (periodoSelecionado == 1) {
+			return Periodo.TARDE;
+		}
+		else if (periodoSelecionado == 2) {
+			return Periodo.NOITE;
+		}
+		else if (periodoSelecionado == 3) {
+			return Periodo.SABADO;
+		}
+		else {
+			return Periodo.ONLINE;
+		}
+		
 	}
 }
